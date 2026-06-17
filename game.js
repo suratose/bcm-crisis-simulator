@@ -17,18 +17,24 @@ async function loadScenario() {
         const gameArea =
             document.getElementById("gameArea");
 
-        gameArea.innerHTML = `
-            <h2>${scenario.title}</h2>
+        const firstAct = scenario.acts[0];
 
-            <p>
-                ${scenario.description}
-            </p>
+gameArea.innerHTML = `
+    <h2>${scenario.title}</h2>
 
-            <p>
-                Number of Acts:
-                ${scenario.acts.length}
-            </p>
-        `;
+    <p>${scenario.description}</p>
+
+    <hr>
+
+    <h3>
+        ${firstAct.name}
+    </h3>
+
+    <p>
+        Max Choices:
+        ${firstAct.maxChoices}
+    </p>
+`;
 
     }
     catch (error) {
