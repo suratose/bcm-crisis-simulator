@@ -1,21 +1,31 @@
 {
 "scenarioId": "ransomware_v1",
+
 "title": "Ransomware Crisis Simulation",
+
 "version": "1.0",
+
 "description": "Phishing email leads to RAT infection, Active Directory compromise, ransomware deployment, business disruption, and recovery.",
 
 "acts": [
+
+```
 {
-"id": "act1",
-"name": "Detection",
-"maxChoices": 4,
-"status": "draft",
+  "id": "act1",
+
+  "name": "Detection",
+
+  "maxChoices": 4,
 
   "questions": [
+
     {
       "id": "q1",
+
       "type": "investigation",
+
       "title": "How many users received the email?",
+
       "result": "Thirty-five users received the phishing email.",
 
       "score": {
@@ -23,10 +33,14 @@
       },
 
       "children": [
+
         {
           "id": "q1a",
+
           "type": "investigation",
+
           "title": "Which departments received the email?",
+
           "result": "Finance, HR, and Procurement received the phishing email.",
 
           "score": {
@@ -36,8 +50,11 @@
 
         {
           "id": "q1b",
+
           "type": "investigation",
+
           "title": "Who clicked the email?",
+
           "result": "Seven users clicked the malicious attachment.",
 
           "score": {
@@ -45,10 +62,14 @@
           },
 
           "children": [
+
             {
               "id": "identify_infected_hosts",
+
               "type": "investigation",
+
               "title": "Identify infected hosts",
+
               "result": "Five workstations show malware execution and C2 communication.",
 
               "score": {
@@ -56,47 +77,112 @@
                 "response": 5
               }
             }
+
           ]
         }
+
       ]
     }
+
   ]
 },
 
 {
   "id": "act2",
+
   "name": "Escalation",
+
   "maxChoices": 3,
-  "status": "draft"
+
+  "questions": [
+
+    {
+      "id": "e1",
+
+      "type": "investigation",
+
+      "title": "Investigate Active Directory Activity",
+
+      "result": "Suspicious LDAP enumeration activity detected from multiple compromised hosts.",
+
+      "score": {
+        "response": 10
+      }
+    },
+
+    {
+      "id": "e2",
+
+      "type": "investigation",
+
+      "title": "Investigate Domain Controllers",
+
+      "result": "Potential Domain Admin credential compromise detected.",
+
+      "score": {
+        "response": 10,
+        "mitigation": 5
+      }
+    },
+
+    {
+      "id": "e3",
+
+      "type": "investigation",
+
+      "title": "Investigate Command and Control Traffic",
+
+      "result": "Malware beaconing observed to external infrastructure.",
+
+      "score": {
+        "response": 5,
+        "mitigation": 10
+      }
+    }
+
+  ]
 },
 
 {
   "id": "act3",
+
   "name": "Business Impact Analysis",
+
   "maxChoices": 2,
-  "status": "draft"
+
+  "questions": []
 },
 
 {
   "id": "act4",
+
   "name": "Crisis Management",
+
   "maxChoices": 3,
-  "status": "draft"
+
+  "questions": []
 },
 
 {
   "id": "act5",
+
   "name": "Recovery",
+
   "maxChoices": 2,
-  "status": "draft"
+
+  "questions": []
 },
 
 {
   "id": "post_review",
+
   "name": "Post Incident Review",
+
   "maxChoices": 2,
-  "status": "draft"
+
+  "questions": []
 }
+```
 
 ]
 }
