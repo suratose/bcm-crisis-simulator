@@ -1,22 +1,47 @@
+console.log("GAME.JS LOADED");
+
 async function loadScenario() {
 
-    const response =
-        await fetch(
+    console.log("START BUTTON CLICKED");
+
+    try {
+
+        const response = await fetch(
             "./scenarios/ransomware_v1.json"
         );
 
-    const scenario =
-        await response.json();
+        const scenario = await response.json();
 
-    const gameArea =
+        console.log(scenario);
+
+        const gameArea =
+            document.getElementById("gameArea");
+
+        gameArea.innerHTML = `
+            <h2>${scenario.title}</h2>
+
+            <p>
+                ${scenario.description}
+            </p>
+
+            <p>
+                Number of Acts:
+                ${scenario.acts.length}
+            </p>
+        `;
+
+    }
+    catch (error) {
+
+        console.error(error);
+
         document.getElementById(
             "gameArea"
-        );
-
-    gameArea.innerHTML = `
-        <h2>${scenario.title}</h2>
-        <p>${scenario.description}</p>
-    `;
+        ).innerHTML = `
+            <h2>ERROR</h2>
+            <p>${error}</p>
+        `;
+    }
 }
 
 document
