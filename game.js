@@ -19,22 +19,28 @@ async function loadScenario() {
 
         const firstAct = scenario.acts[0];
 
-gameArea.innerHTML = `
-    <h2>${scenario.title}</h2>
+        const firstQuestion =
+            firstAct.questions[0];
 
-    <p>${scenario.description}</p>
+        gameArea.innerHTML = `
+            <h2>${scenario.title}</h2>
 
-    <hr>
+            <p>${scenario.description}</p>
 
-    <h3>
-        ${firstAct.name}
-    </h3>
+            <hr>
 
-    <p>
-        Max Choices:
-        ${firstAct.maxChoices}
-    </p>
-`;
+            <h3>${firstAct.name}</h3>
+
+            <h4>
+                ${firstQuestion.title}
+            </h4>
+
+            <button id="answerBtn">
+                Investigate
+            </button>
+
+            <div id="resultArea"></div>
+        `;
 
     }
     catch (error) {
