@@ -395,3 +395,28 @@ Netlify
 Vercel
 
 นี่จะเป็น BCM Crisis Simulator v1.0 Baseline Architecture ของเรา และหลังจากคุณสมัคร GitHub เสร็จ ขั้นต่อไปคือผมจะช่วยออกแบบโครงสร้าง scenario.json และโครงสร้างโค้ด game.js ก่อนเริ่มเขียนหน้าเว็บจริงครับ
+
+# Scenario Data Model
+
+Scenario
+ └─ Acts
+      └─ Nodes
+            └─ Children
+            └─ Score
+            └─ Unlock
+            └─ Consequence
+
+Operational Metrics
+
+- Business Health
+- Reputation
+
+Capability Metrics
+
+- Detection
+- Response
+- Mitigation
+- Reporting
+- Recovery
+- Remediation
+- Lessons Learned
