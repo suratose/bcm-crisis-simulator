@@ -1,84 +1,122 @@
 {
-  "scenarioId": "ransomware_v1",
+"scenarioId": "ransomware_v1",
 
-  "title": "Ransomware Crisis Simulation",
+"title": "Ransomware Crisis Simulation",
 
-  "version": "1.0",
+"version": "1.0",
 
-  "description": "Phishing email leads to RAT infection, Active Directory compromise, ransomware deployment, business disruption, and recovery.",
+"description": "Phishing email leads to RAT infection, Active Directory compromise, ransomware deployment, business disruption, and recovery.",
 
-  "acts": [
+"acts": [
+{
+"id": "act1",
+
+```
+  "name": "Detection",
+
+  "maxChoices": 4,
+
+  "status": "draft",
+
+  "questions": [
     {
-      "id": "act1",
-      "name": "Detection",
-      "maxChoices": 4,
-      "status": "draft",
-      "nodes": [
-        {
-          "id": "q1",
-          "type": "investigation",
-          "title": "How many users received the email?",
-          "result": "Thirty-five users received the phishing email.",
-          "score": {
-            "detection": 5
-          },
-          "children": [
-            "q1a",
-            "q1b"
-          ]
-        },
+      "id": "q1",
+
+      "type": "investigation",
+
+      "title": "How many users received the email?",
+
+      "result": "Thirty-five users received the phishing email.",
+
+      "score": {
+        "detection": 5
+      },
+
+      "children": [
         {
           "id": "q1a",
+
           "type": "investigation",
+
           "title": "Which departments received the email?",
+
           "result": "Finance, HR, and Procurement received the phishing email.",
+
           "score": {
             "detection": 5
           }
         },
+
         {
           "id": "q1b",
+
           "type": "investigation",
+
           "title": "Who clicked the email?",
+
           "result": "Seven users clicked the malicious attachment.",
+
           "score": {
             "detection": 10
           },
+
           "unlock": [
-            "identify_infected_hosts"
+            {
+              "id": "identify_infected_hosts",
+
+              "type": "investigation",
+
+              "title": "Identify infected hosts",
+
+              "result": "Five workstations show malware execution and C2 communication.",
+
+              "score": {
+                "detection": 10,
+                "response": 5
+              }
+            }
           ]
         }
       ]
-    },
-    {
-      "id": "act2",
-      "name": "Escalation",
-      "maxChoices": 3,
-      "status": "draft"
-    },
-    {
-      "id": "act3",
-      "name": "Business Impact Analysis",
-      "maxChoices": 2,
-      "status": "draft"
-    },
-    {
-      "id": "act4",
-      "name": "Crisis Management",
-      "maxChoices": 3,
-      "status": "draft"
-    },
-    {
-      "id": "act5",
-      "name": "Recovery",
-      "maxChoices": 2,
-      "status": "draft"
-    },
-    {
-      "id": "post_review",
-      "name": "Post Incident Review",
-      "maxChoices": 2,
-      "status": "draft"
     }
   ]
+},
+
+{
+  "id": "act2",
+  "name": "Escalation",
+  "maxChoices": 3,
+  "status": "draft"
+},
+
+{
+  "id": "act3",
+  "name": "Business Impact Analysis",
+  "maxChoices": 2,
+  "status": "draft"
+},
+
+{
+  "id": "act4",
+  "name": "Crisis Management",
+  "maxChoices": 3,
+  "status": "draft"
+},
+
+{
+  "id": "act5",
+  "name": "Recovery",
+  "maxChoices": 2,
+  "status": "draft"
+},
+
+{
+  "id": "post_review",
+  "name": "Post Incident Review",
+  "maxChoices": 2,
+  "status": "draft"
+}
+```
+
+]
 }
