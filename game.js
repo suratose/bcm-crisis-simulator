@@ -8,10 +8,13 @@ async function loadScenario() {
             "./scenarios/ransomware_v1.json"
         );
 
-        const scenario = await response.json();
+        const scenario =
+            await response.json();
 
         const gameArea =
-            document.getElementById("gameArea");
+            document.getElementById(
+                "gameArea"
+            );
 
         const firstAct =
             scenario.acts[0];
@@ -28,107 +31,21 @@ async function loadScenario() {
 
             <h3>${firstAct.name}</h3>
 
-            <h4>${firstQuestion.title}</h4>
-
-            <button id="answerBtn">
-                Investigate
-            </button>
-
-            <div id="resultArea"></div>
+            <div id="questionTree"></div>
         `;
 
-        document
-            .getElementById("answerBtn")
-            .addEventListener(
-                "click",
-                () => {
-
-                    let childHtml = "";
-
-                    if (firstQuestion.children) {
-
-                        firstQuestion.children.forEach(
-                            child => {
-
-                                childHtml += `
-                                    <button
-                                        class="childBtn"
-                                        data-id="${child.id}">
-                                        ${child.title}
-                                    </button>
-                                    <br><br>
-                                `;
-                            }
-                        );
-                    }
-
-                    document
-                        .getElementById(
-                            "resultArea"
-                        )
-                        .innerHTML = `
-                            <p>
-                                ${firstQuestion.result}
-                            </p>
-
-                            <p>
-                                Detection Score:
-                                ${firstQuestion.score.detection}
-                            </p>
-
-                            <hr>
-
-                            <h4>
-                                Next Investigation
-                            </h4>
-
-                            ${childHtml}
-
-                            <div id="childResult"></div>
-                        `;
-
-                    document
-                        .querySelectorAll(
-                            ".childBtn"
-                        )
-                        .forEach(btn => {
-
-                            btn.addEventListener(
-                                "click",
-                                () => {
-
-                                    const selected =
-                                        firstQuestion.children.find(
-                                            c =>
-                                                c.id ===
-                                                btn.dataset.id
-                                        );
-
-                                    document
-                                        .getElementById(
-                                            "childResult"
-                                        )
-                                        .innerHTML = `
-                                            <hr>
-
-                                            <h4>
-                                                ${selected.title}
-                                            </h4>
-
-                                            <p>
-                                                ${selected.result}
-                                            </p>
-                                        `;
-                                }
-                            );
-
-                        });
-
-                }
+        const treeContainer =
+            document.getElementById(
+                "questionTree"
             );
 
+        renderQuestion(
+            firstQuestion,
+            treeContainer
+        );
+
     }
-    catch (error) {
+    catch(error) {
 
         console.error(error);
 
@@ -143,8 +60,94 @@ async function loadScenario() {
     }
 }
 
+function renderQuestion(
+    node,
+    container
+) {
+
+    const block =
+        document.createElement(
+            "div"
+        );
+
+    block.style.margin =
+        "20px 0";
+
+    block.innerHTML = `
+        <h4>${node.title}</h4>
+
+        <button>
+            Investigate
+        </button>
+
+        <div class="result"></div>
+    `;
+
+    container.appendChild(
+        block
+    );
+
+    const button =
+        block.querySelector(
+            "button"
+        );
+
+    const resultDiv =
+        block.querySelector(
+            ".result"
+        );
+
+    button.addEventListener(
+        "click",
+        () => {
+
+            button.disabled = true;
+
+            let scoreHtml = "";
+
+            if(node.score){
+
+                scoreHtml =
+                    "<pre>" +
+                    JSON.stringify(
+                        node.score,
+                        null,
+                        2
+                    ) +
+                    "</pre>";
+            }
+
+            resultDiv.innerHTML = `
+                <p>
+                    ${node.result}
+                </p>
+
+                ${scoreHtml}
+            `;
+
+            if(node.children){
+
+                node.children.forEach(
+                    child => {
+
+                        renderQuestion(
+                            child,
+                            resultDiv
+                        );
+
+                    }
+                );
+
+            }
+
+        }
+    );
+}
+
 document
-    .getElementById("startBtn")
+    .getElementById(
+        "startBtn"
+    )
     .addEventListener(
         "click",
         loadScenario
