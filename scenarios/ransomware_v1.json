@@ -13,7 +13,42 @@
       "name": "Detection",
       "maxChoices": 4,
       "status": "draft",
-      "nodes": []
+      "nodes": [
+        {
+          "id": "q1",
+          "type": "investigation",
+          "title": "How many users received the email?",
+          "result": "Thirty-five users received the phishing email.",
+          "score": {
+            "detection": 5
+          },
+          "children": [
+            "q1a",
+            "q1b"
+          ]
+        },
+        {
+          "id": "q1a",
+          "type": "investigation",
+          "title": "Which departments received the email?",
+          "result": "Finance, HR, and Procurement received the phishing email.",
+          "score": {
+            "detection": 5
+          }
+        },
+        {
+          "id": "q1b",
+          "type": "investigation",
+          "title": "Who clicked the email?",
+          "result": "Seven users clicked the malicious attachment.",
+          "score": {
+            "detection": 10
+          },
+          "unlock": [
+            "identify_infected_hosts"
+          ]
+        }
+      ]
     },
     {
       "id": "act2",
