@@ -12,7 +12,8 @@
       "id": "act1",
       "name": "Detection",
       "maxChoices": 4,
-      "status": "draft"
+      "status": "draft",
+      "nodes": []
     },
     {
       "id": "act2",
