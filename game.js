@@ -1,17 +1,22 @@
 async function loadScenario() {
 
-    const response = await fetch(
-        "./scenarios/ransomware_v1.json"
-    );
+    const response =
+        await fetch(
+            "./scenarios/ransomware_v1.json"
+        );
 
-    const scenario = await response.json();
+    const scenario =
+        await response.json();
 
-    console.log(scenario);
+    const gameArea =
+        document.getElementById(
+            "gameArea"
+        );
 
-    alert(
-        "Scenario Loaded: " +
-        scenario.title
-    );
+    gameArea.innerHTML = `
+        <h2>${scenario.title}</h2>
+        <p>${scenario.description}</p>
+    `;
 }
 
 document
