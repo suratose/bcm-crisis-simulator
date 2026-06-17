@@ -1,5 +1,22 @@
-const startBtn = document.getElementById("startBtn");
+async function loadScenario() {
 
-startBtn.addEventListener("click", () => {
-    alert("BCM Crisis Simulator Started!");
-});
+    const response = await fetch(
+        "./scenarios/ransomware_v1.json"
+    );
+
+    const scenario = await response.json();
+
+    console.log(scenario);
+
+    alert(
+        "Scenario Loaded: " +
+        scenario.title
+    );
+}
+
+document
+    .getElementById("startBtn")
+    .addEventListener(
+        "click",
+        loadScenario
+    );
