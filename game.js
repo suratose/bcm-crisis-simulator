@@ -2,8 +2,6 @@ console.log("GAME.JS LOADED");
 
 async function loadScenario() {
 
-    console.log("START BUTTON CLICKED");
-
     try {
 
         const response = await fetch(
@@ -11,8 +9,6 @@ async function loadScenario() {
         );
 
         const scenario = await response.json();
-
-        console.log(scenario);
 
         const gameArea =
             document.getElementById("gameArea");
@@ -26,19 +22,13 @@ async function loadScenario() {
         gameArea.innerHTML = `
             <h2>${scenario.title}</h2>
 
-            <p>
-                ${scenario.description}
-            </p>
+            <p>${scenario.description}</p>
 
             <hr>
 
-            <h3>
-                ${firstAct.name}
-            </h3>
+            <h3>${firstAct.name}</h3>
 
-            <h4>
-                ${firstQuestion.title}
-            </h4>
+            <h4>${firstQuestion.title}</h4>
 
             <button id="answerBtn">
                 Investigate
@@ -53,6 +43,25 @@ async function loadScenario() {
                 "click",
                 () => {
 
+                    let childHtml = "";
+
+                    if (firstQuestion.children) {
+
+                        firstQuestion.children.forEach(
+                            child => {
+
+                                childHtml += `
+                                    <button
+                                        class="childBtn"
+                                        data-id="${child.id}">
+                                        ${child.title}
+                                    </button>
+                                    <br><br>
+                                `;
+                            }
+                        );
+                    }
+
                     document
                         .getElementById(
                             "resultArea"
@@ -66,7 +75,55 @@ async function loadScenario() {
                                 Detection Score:
                                 ${firstQuestion.score.detection}
                             </p>
+
+                            <hr>
+
+                            <h4>
+                                Next Investigation
+                            </h4>
+
+                            ${childHtml}
+
+                            <div id="childResult"></div>
                         `;
+
+                    document
+                        .querySelectorAll(
+                            ".childBtn"
+                        )
+                        .forEach(btn => {
+
+                            btn.addEventListener(
+                                "click",
+                                () => {
+
+                                    const selected =
+                                        firstQuestion.children.find(
+                                            c =>
+                                                c.id ===
+                                                btn.dataset.id
+                                        );
+
+                                    document
+                                        .getElementById(
+                                            "childResult"
+                                        )
+                                        .innerHTML = `
+                                            <hr>
+
+                                            <h4>
+                                                ${selected.title}
+                                            </h4>
+
+                                            <p>
+                                                ${selected.result}
+                                            </p>
+                                        `;
+                                }
+                            );
+
+                        });
+
                 }
             );
 
@@ -81,10 +138,7 @@ async function loadScenario() {
             )
             .innerHTML = `
                 <h2>ERROR</h2>
-
-                <p>
-                    ${error}
-                </p>
+                <p>${error}</p>
             `;
     }
 }
