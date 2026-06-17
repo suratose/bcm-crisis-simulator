@@ -18,7 +18,31 @@ const gameState = {
 let actChoiceCount = 0;
 let maxChoices = 0;
 
+function resetGame() {
+
+    actChoiceCount = 0;
+
+    gameState.business = 100;
+    gameState.reputation = 100;
+
+    gameState.detection = 0;
+    gameState.response = 0;
+    gameState.mitigation = 0;
+    gameState.reporting = 0;
+    gameState.recovery = 0;
+    gameState.remediation = 0;
+    gameState.lessonsLearned = 0;
+}
+
 async function loadScenario() {
+
+    resetGame();
+
+    document
+        .getElementById(
+            "startBtn"
+        )
+        .disabled = true;
 
     try {
 
@@ -343,7 +367,7 @@ function renderQuestion(
 
                 document
                     .querySelectorAll(
-                        "button"
+                        "#questionTree button"
                     )
                     .forEach(btn => {
 
