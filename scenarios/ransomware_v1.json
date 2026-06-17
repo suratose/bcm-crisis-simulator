@@ -1,31 +1,22 @@
 {
 "scenarioId": "ransomware_v1",
-
 "title": "Ransomware Crisis Simulation",
-
 "version": "1.0",
-
 "description": "Phishing email leads to RAT infection, Active Directory compromise, ransomware deployment, business disruption, and recovery.",
 
 "acts": [
 {
 "id": "act1",
+"name": "Detection",
+"maxChoices": 4,
+"status": "draft",
 
 ```
-  "name": "Detection",
-
-  "maxChoices": 4,
-
-  "status": "draft",
-
   "questions": [
     {
       "id": "q1",
-
       "type": "investigation",
-
       "title": "How many users received the email?",
-
       "result": "Thirty-five users received the phishing email.",
 
       "score": {
@@ -35,11 +26,8 @@
       "children": [
         {
           "id": "q1a",
-
           "type": "investigation",
-
           "title": "Which departments received the email?",
-
           "result": "Finance, HR, and Procurement received the phishing email.",
 
           "score": {
@@ -49,25 +37,19 @@
 
         {
           "id": "q1b",
-
           "type": "investigation",
-
           "title": "Who clicked the email?",
-
           "result": "Seven users clicked the malicious attachment.",
 
           "score": {
             "detection": 10
           },
 
-          "unlock": [
+          "children": [
             {
               "id": "identify_infected_hosts",
-
               "type": "investigation",
-
               "title": "Identify infected hosts",
-
               "result": "Five workstations show malware execution and C2 communication.",
 
               "score": {
