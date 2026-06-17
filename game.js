@@ -15,6 +15,9 @@ const gameState = {
 
 };
 
+let actChoiceCount = 0;
+let maxChoices = 0;
+
 async function loadScenario() {
 
     try {
@@ -34,6 +37,9 @@ async function loadScenario() {
         const firstAct =
             scenario.acts[0];
 
+        maxChoices =
+            firstAct.maxChoices;
+
         const firstQuestion =
             firstAct.questions[0];
 
@@ -41,9 +47,22 @@ async function loadScenario() {
 
             <div id="scoreBoard">
 
-                <h3>
+                <h2>
                     Executive Dashboard
-                </h3>
+                </h2>
+
+                <p>
+                    Choices Used:
+                    <span id="choiceCount">
+                        0
+                    </span>
+                    /
+                    <span id="choiceMax">
+                        0
+                    </span>
+                </p>
+
+                <hr>
 
                 <p>
                     Business Health:
@@ -129,6 +148,7 @@ async function loadScenario() {
             </h3>
 
             <div id="questionTree"></div>
+
         `;
 
         updateScoreBoard();
@@ -205,6 +225,16 @@ function updateScoreBoard() {
         "lessonsLearnedScore"
     ).textContent =
         gameState.lessonsLearned;
+
+    document.getElementById(
+        "choiceCount"
+    ).textContent =
+        actChoiceCount;
+
+    document.getElementById(
+        "choiceMax"
+    ).textContent =
+        maxChoices;
 }
 
 function renderQuestion(
@@ -252,6 +282,8 @@ function renderQuestion(
 
             button.disabled = true;
 
+            actChoiceCount++;
+
             if(node.score){
 
                 gameState.detection +=
@@ -280,9 +312,9 @@ function renderQuestion(
 
                 gameState.reputation +=
                     node.score.reputation || 0;
-
-                updateScoreBoard();
             }
+
+            updateScoreBoard();
 
             resultDiv.innerHTML = `
                 <p>
@@ -302,6 +334,51 @@ function renderQuestion(
 
                     }
                 );
+            }
+
+            if (
+                actChoiceCount >=
+                maxChoices
+            ) {
+
+                document
+                    .querySelectorAll(
+                        "button"
+                    )
+                    .forEach(btn => {
+
+                        btn.disabled = true;
+
+                    });
+
+                const notice =
+                    document.createElement(
+                        "div"
+                    );
+
+                notice.innerHTML = `
+                    <hr>
+
+                    <h3>
+                        Act Complete
+                    </h3>
+
+                    <p>
+                        Maximum investigations reached.
+                    </p>
+
+                    <p>
+                        Proceed to the next phase.
+                    </p>
+                `;
+
+                document
+                    .getElementById(
+                        "questionTree"
+                    )
+                    .appendChild(
+                        notice
+                    );
             }
 
         }
