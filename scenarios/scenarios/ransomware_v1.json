@@ -1,0 +1,48 @@
+{
+  "scenarioId": "ransomware_v1",
+
+  "title": "Ransomware Crisis Simulation",
+
+  "version": "1.0",
+
+  "description": "Phishing email leads to RAT infection, Active Directory compromise, ransomware deployment, business disruption, and recovery.",
+
+  "acts": [
+    {
+      "id": "act1",
+      "name": "Detection",
+      "maxChoices": 4,
+      "status": "draft"
+    },
+    {
+      "id": "act2",
+      "name": "Escalation",
+      "maxChoices": 3,
+      "status": "draft"
+    },
+    {
+      "id": "act3",
+      "name": "Business Impact Analysis",
+      "maxChoices": 2,
+      "status": "draft"
+    },
+    {
+      "id": "act4",
+      "name": "Crisis Management",
+      "maxChoices": 3,
+      "status": "draft"
+    },
+    {
+      "id": "act5",
+      "name": "Recovery",
+      "maxChoices": 2,
+      "status": "draft"
+    },
+    {
+      "id": "post_review",
+      "name": "Post Incident Review",
+      "maxChoices": 2,
+      "status": "draft"
+    }
+  ]
+}
