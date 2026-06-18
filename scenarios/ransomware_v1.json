@@ -89,10 +89,71 @@
 ]
 },
 {
+{
 "id": "act3",
 "name": "Business Impact Analysis",
 "maxChoices": 2,
-"questions": []
+"questions": [
+{
+"id": "bia1",
+"type": "decision",
+"title": "Which system should be recovered first?",
+"options": [
+{
+"text": "ERP",
+"result": "Financial operations restored first.",
+"score": {
+"recovery": 10,
+"business": 10
+}
+},
+{
+"text": "Email",
+"result": "Internal communication restored first.",
+"score": {
+"reporting": 10,
+"business": 5
+}
+},
+{
+"text": "Production",
+"result": "Manufacturing operations restored first.",
+"score": {
+"recovery": 15,
+"business": 15
+}
+}
+]
+},
+{
+  "id": "bia2",
+  "type": "decision",
+  "title": "Choose Recovery Time Objective (RTO)",
+  "options": [
+    {
+      "text": "1 Hour",
+      "result": "Aggressive recovery target selected.",
+      "score": {
+        "recovery": 10
+      }
+    },
+    {
+      "text": "4 Hours",
+      "result": "Balanced recovery target selected.",
+      "score": {
+        "recovery": 5
+      }
+    },
+    {
+      "text": "24 Hours",
+      "result": "Minimal recovery effort planned.",
+      "score": {
+        "recovery": 0
+      }
+    }
+  ]
+}
+]
 },
 {
 "id": "act4",
