@@ -1,121 +1,369 @@
 {
-  "scenarioId": "ransomware_v1",
-  "title": "Ransomware Crisis Simulation",
+  "id": "ransomware_v1",
+  "title": "Operation Dark Monday",
+  "subtitle": "Ransomware Crisis — Tabletop Exercise",
   "version": "1.0",
-  "description": "Phishing email leads to RAT infection, Active Directory compromise, ransomware deployment, business disruption, and recovery.",
   "acts": [
     {
-      "id": "act1",
-      "name": "Detection",
+      "id": 1,
+      "label": "Act 1 — Detection",
+      "title": "Something is wrong",
+      "brief": "It is 07:42 on a Monday morning. The IT helpdesk begins receiving calls about systems being slow or inaccessible. An alert fires in the SOC dashboard.",
+      "ticker": "07:42 — Multiple users reporting encrypted files and a ransom note on screen.",
       "maxChoices": 4,
-      "questions": [
+      "nodes": [
         {
-          "id": "q1",
+          "id": "a1n1",
           "type": "investigation",
-          "title": "How many users received the email?",
-          "result": "Thirty-five users received the phishing email.",
-          "score": {
-            "detection": 5
-          },
+          "title": "Check the SOC alert details",
+          "result": "The SIEM shows lateral movement starting at 02:14. Ransomware binary deployed across 43 endpoints in Finance and Operations.",
+          "scores": { "detection": 5 },
           "children": [
             {
-              "id": "q1a",
-              "type": "investigation",
-              "title": "Which departments received the email?",
-              "result": "Finance, HR, and Procurement received the phishing email.",
-              "score": {
-                "detection": 5
-              }
+              "id": "a1c1",
+              "title": "Identify patient zero",
+              "result": "User jsmith@corp.com opened a malicious attachment at 01:58 from a spoofed CFO email.",
+              "scores": { "detection": 5 }
             },
             {
-              "id": "q1b",
-              "type": "investigation",
-              "title": "Who clicked the email?",
-              "result": "Seven users clicked the malicious attachment.",
-              "score": {
-                "detection": 10
-              },
-              "children": [
-                {
-                  "id": "identify_infected_hosts",
-                  "type": "investigation",
-                  "title": "Identify infected hosts",
-                  "result": "Five workstations show malware execution and C2 communication.",
-                  "score": {
-                    "detection": 10,
-                    "response": 5
-                  }
-                }
-              ]
+              "id": "a1c2",
+              "title": "Check backup status",
+              "result": "Last verified backup completed 3 days ago. Today's incremental backup was partially encrypted.",
+              "scores": { "detection": 3 }
+            }
+          ]
+        },
+        {
+          "id": "a1n2",
+          "type": "investigation",
+          "title": "Review network traffic logs",
+          "result": "Outbound C2 traffic detected to 185.220.x.x (known Tor exit node). Approximately 2.3 GB of data exfiltrated before encryption began.",
+          "scores": { "detection": 5 },
+          "children": []
+        },
+        {
+          "id": "a1n3",
+          "type": "decision",
+          "title": "Isolate affected network segment?",
+          "options": [
+            {
+              "text": "Yes — isolate immediately",
+              "scores": { "detection": 15, "response": 10 },
+              "metrics": { "business": -5 },
+              "feedback": "Correct action. Isolation halted lateral movement but caused brief service disruption for 300 staff."
+            },
+            {
+              "text": "No — continue monitoring",
+              "scores": { "detection": 5, "response": -5 },
+              "metrics": { "business": -15, "reputation": -10 },
+              "feedback": "Delayed action. The ransomware spread to 2 additional departments while monitoring continued."
+            }
+          ]
+        },
+        {
+          "id": "a1n4",
+          "type": "decision",
+          "title": "Notify CISO and executive team?",
+          "options": [
+            {
+              "text": "Yes — escalate immediately",
+              "scores": { "reporting": 15 },
+              "metrics": { "reputation": 5 },
+              "feedback": "Good. Early escalation allows leadership to prepare crisis communications and engage legal."
+            },
+            {
+              "text": "No — investigate more first",
+              "scores": { "reporting": -10 },
+              "metrics": { "reputation": -5 },
+              "feedback": "Risky. Without executive awareness, key decisions were delayed by 2 hours."
             }
           ]
         }
       ]
     },
-
     {
-      "id": "act2",
-      "name": "Escalation",
-      "maxChoices": 3,
-      "questions": [
+      "id": 2,
+      "label": "Act 2 — Escalation",
+      "title": "Crisis is confirmed",
+      "brief": "CISO has been notified. Legal, HR, and Comms teams are being assembled. The ransom note demands $2.3M in cryptocurrency within 72 hours.",
+      "ticker": "09:15 — Media is asking questions. A customer portal has been offline for 90 minutes.",
+      "maxChoices": 4,
+      "nodes": [
         {
-          "id": "e1",
+          "id": "a2n1",
           "type": "investigation",
-          "title": "Investigate Active Directory Activity",
-          "result": "Suspicious LDAP enumeration activity detected from multiple compromised hosts.",
-          "score": {
-            "response": 10
-          }
+          "title": "Assess scope of encrypted systems",
+          "result": "Confirmed: 43 endpoints, 2 file servers, 1 ERP system (SAP), and the customer-facing web portal are encrypted. Core banking and email remain online.",
+          "scores": { "detection": 5 },
+          "children": [
+            {
+              "id": "a2c1",
+              "title": "Estimate recovery time without paying ransom",
+              "result": "IT estimates 7–14 days for full recovery using backups. ERP data loss of approximately 3 days.",
+              "scores": { "recovery": 3 }
+            }
+          ]
         },
         {
-          "id": "e2",
+          "id": "a2n2",
           "type": "investigation",
-          "title": "Investigate Domain Controllers",
-          "result": "Potential Domain Admin credential compromise detected.",
-          "score": {
-            "response": 10,
-            "mitigation": 5
-          }
+          "title": "Review cyber insurance policy",
+          "result": "Policy covers ransomware response up to $5M. Coverage requires notification within 24 hours of discovery. The insurer must approve any ransom payment.",
+          "scores": { "mitigation": 3 },
+          "children": []
         },
         {
-          "id": "e3",
-          "type": "investigation",
-          "title": "Investigate Command and Control Traffic",
-          "result": "Malware beaconing observed to external infrastructure.",
-          "score": {
-            "response": 5,
-            "mitigation": 10
-          }
+          "id": "a2n3",
+          "type": "decision",
+          "title": "Declare a formal Cyber Crisis?",
+          "options": [
+            {
+              "text": "Yes — activate Crisis Management Team",
+              "scores": { "response": 15, "mitigation": 10 },
+              "metrics": { "business": 5 },
+              "feedback": "Strong. CMT activation enables structured command, coordination, and faster decision-making."
+            },
+            {
+              "text": "No — handle within IT department",
+              "scores": { "response": -10 },
+              "metrics": { "business": -10, "reputation": -10 },
+              "feedback": "Poor. IT-only response lacked authority to make key business and legal decisions quickly."
+            }
+          ]
+        },
+        {
+          "id": "a2n4",
+          "type": "decision",
+          "title": "Notify cyber insurer within SLA?",
+          "options": [
+            {
+              "text": "Yes — notify immediately",
+              "scores": { "reporting": 15, "mitigation": 5 },
+              "metrics": {},
+              "feedback": "Correct. Timely notification preserves coverage. Insurer dispatched a forensics firm within 4 hours."
+            },
+            {
+              "text": "No — assess internally first",
+              "scores": { "reporting": -15 },
+              "metrics": { "business": -10 },
+              "feedback": "Policy breach. Late notification voided a portion of coverage, adding $400K to recovery costs."
+            }
+          ]
         }
       ]
     },
-
     {
-      "id": "act3",
-      "name": "Business Impact Analysis",
-      "maxChoices": 2,
-      "questions": []
+      "id": 3,
+      "label": "Act 3 — Business Impact",
+      "title": "Counting the cost",
+      "brief": "The Crisis Management Team is assembled. Finance is preparing impact figures. Customers and partners are calling for updates.",
+      "ticker": "11:30 — Stock price has dropped 4%. Two enterprise clients have emailed requesting status updates.",
+      "maxChoices": 4,
+      "nodes": [
+        {
+          "id": "a3n1",
+          "type": "investigation",
+          "title": "Conduct Business Impact Analysis",
+          "result": "Critical processes offline: Order processing, customer portal, financial reporting. Revenue impact estimated at $180K/day. SLA breach for 3 Tier-1 clients imminent.",
+          "scores": { "mitigation": 5 },
+          "children": [
+            {
+              "id": "a3c1",
+              "title": "Identify manual workarounds",
+              "result": "Finance can process payroll manually for up to 5 days. Orders can be taken via phone with 40% reduced capacity.",
+              "scores": { "mitigation": 3 }
+            }
+          ]
+        },
+        {
+          "id": "a3n2",
+          "type": "investigation",
+          "title": "Assess reputational risk",
+          "result": "Social media monitoring shows 142 mentions, mostly concerned customers. No mainstream media coverage yet. One industry journalist has made direct contact.",
+          "scores": { "reporting": 3 },
+          "children": []
+        },
+        {
+          "id": "a3n3",
+          "type": "decision",
+          "title": "Issue a public statement now?",
+          "options": [
+            {
+              "text": "Yes — brief, factual holding statement",
+              "scores": { "reporting": 10 },
+              "metrics": { "reputation": 15 },
+              "feedback": "Effective. The statement contained speculation, reassured clients, and reduced media pressure."
+            },
+            {
+              "text": "No — wait for full picture",
+              "scores": { "reporting": -5 },
+              "metrics": { "reputation": -20 },
+              "feedback": "Costly. The silence was interpreted as cover-up. Negative media coverage began within 2 hours."
+            }
+          ]
+        },
+        {
+          "id": "a3n4",
+          "type": "decision",
+          "title": "Activate Business Continuity Plan (BCP)?",
+          "options": [
+            {
+              "text": "Yes — activate BCP immediately",
+              "scores": { "mitigation": 20, "recovery": 10 },
+              "metrics": { "business": 15 },
+              "feedback": "Excellent. Manual workarounds reduced operational downtime by an estimated 60%."
+            },
+            {
+              "text": "No — wait for IT recovery",
+              "scores": { "mitigation": -10 },
+              "metrics": { "business": -15 },
+              "feedback": "Missed opportunity. Two days of revenue loss could have been partially offset by BCP activation."
+            }
+          ]
+        }
+      ]
     },
-
     {
-      "id": "act4",
-      "name": "Crisis Management",
-      "maxChoices": 3,
-      "questions": []
+      "id": 4,
+      "label": "Act 4 — Crisis Management",
+      "title": "Making the hard calls",
+      "brief": "Day 2. IT has begun recovery. The threat actor has published a sample of stolen data on a dark web forum as proof of exfiltration. Regulators have been informed.",
+      "ticker": "Day 2, 10:00 — Data leak confirmed. Legal advises potential PDPA notification obligation.",
+      "maxChoices": 4,
+      "nodes": [
+        {
+          "id": "a4n1",
+          "type": "investigation",
+          "title": "Assess the data exfiltration scope",
+          "result": "Stolen data includes: 14,200 customer records (name, email, partial payment data), internal financial forecasts, and HR salary data. No passport or ID numbers confirmed stolen.",
+          "scores": { "reporting": 5 },
+          "children": [
+            {
+              "id": "a4c1",
+              "title": "Check PDPA notification requirements",
+              "result": "Under Thai PDPA, notification to PDPC required within 72 hours of confirmed breach. Customer notification required if high risk of harm.",
+              "scores": { "reporting": 3 }
+            }
+          ]
+        },
+        {
+          "id": "a4n2",
+          "type": "investigation",
+          "title": "Consult on ransom payment decision",
+          "result": "Legal advises paying ransom carries legal risk and no guarantee. FBI recommends no payment. Insurer is neutral but will cover up to $1M if approved. Decryption tools may exist.",
+          "scores": { "response": 3 },
+          "children": []
+        },
+        {
+          "id": "a4n3",
+          "type": "decision",
+          "title": "Notify affected customers about data breach?",
+          "options": [
+            {
+              "text": "Yes — transparent notification within 72hrs",
+              "scores": { "reporting": 20 },
+              "metrics": { "reputation": 10 },
+              "feedback": "Legally compliant and trust-building. Customers responded with concern but appreciated honesty."
+            },
+            {
+              "text": "No — disclose only if legally forced",
+              "scores": { "reporting": -20 },
+              "metrics": { "reputation": -25 },
+              "feedback": "High-risk strategy. Regulator discovered the breach independently and issued a formal warning."
+            }
+          ]
+        },
+        {
+          "id": "a4n4",
+          "type": "decision",
+          "title": "Pay the ransom?",
+          "options": [
+            {
+              "text": "No — proceed with self-recovery",
+              "scores": { "remediation": 15, "recovery": 10 },
+              "metrics": { "business": -10 },
+              "feedback": "Defensible decision. Recovery took longer but avoided legal risk and funding criminal actors."
+            },
+            {
+              "text": "Yes — pay to accelerate recovery",
+              "scores": { "remediation": -10, "recovery": 5 },
+              "metrics": { "business": 10, "reputation": -15 },
+              "feedback": "Controversial. Recovery was faster but leaked to media, causing significant reputational damage."
+            }
+          ]
+        }
+      ]
     },
-
     {
-      "id": "act5",
-      "name": "Recovery",
-      "maxChoices": 2,
-      "questions": []
-    },
-
-    {
-      "id": "post_review",
-      "name": "Post Incident Review",
-      "maxChoices": 1,
-      "questions": []
+      "id": 5,
+      "label": "Act 5 — Recovery",
+      "title": "Building back",
+      "brief": "Day 5. Systems are being restored. Leadership is under pressure. The board wants a full incident review. Staff morale is low after 5 days of disruption.",
+      "ticker": "Day 5, 14:00 — 70% of systems restored. Full recovery estimated in 48 hours.",
+      "maxChoices": 4,
+      "nodes": [
+        {
+          "id": "a5n1",
+          "type": "investigation",
+          "title": "Verify integrity of restored systems",
+          "result": "Forensic team confirms all restored systems are clean. Persistence mechanisms removed. New EDR deployed on all endpoints. Firewall rules updated.",
+          "scores": { "recovery": 5 },
+          "children": [
+            {
+              "id": "a5c1",
+              "title": "Confirm backup restoration success",
+              "result": "98% of data restored. 3-day ERP gap filled manually by Finance team. No further data confirmed lost.",
+              "scores": { "recovery": 5 }
+            }
+          ]
+        },
+        {
+          "id": "a5n2",
+          "type": "investigation",
+          "title": "Review total business impact",
+          "result": "Direct costs: $620K (forensics, overtime, tooling). Indirect costs: estimated $1.4M (lost revenue, SLA penalties, contract renegotiation). Total: ~$2M.",
+          "scores": { "lessonsLearned": 5 },
+          "children": []
+        },
+        {
+          "id": "a5n3",
+          "type": "decision",
+          "title": "Conduct formal Lessons Learned review?",
+          "options": [
+            {
+              "text": "Yes — within 2 weeks, cross-functional",
+              "scores": { "lessonsLearned": 30 },
+              "metrics": { "reputation": 5 },
+              "feedback": "Best practice. 14 action items identified. Board received a full After-Action Report within 3 weeks."
+            },
+            {
+              "text": "No — move on and focus on operations",
+              "scores": { "lessonsLearned": 0 },
+              "metrics": { "reputation": -5 },
+              "feedback": "Missed. Without a review, root causes remain unaddressed and repeat incidents become more likely."
+            }
+          ]
+        },
+        {
+          "id": "a5n4",
+          "type": "decision",
+          "title": "Invest in BCP and DR program improvements?",
+          "options": [
+            {
+              "text": "Yes — allocate budget and assign owner",
+              "scores": { "remediation": 20, "lessonsLearned": 10 },
+              "metrics": { "business": 5, "reputation": 5 },
+              "feedback": "Excellent. The board approved a 3-year resilience program. Posture significantly improved."
+            },
+            {
+              "text": "No — prioritize cost reduction instead",
+              "scores": { "remediation": -15 },
+              "metrics": { "business": -5, "reputation": -5 },
+              "feedback": "Short-sighted. Auditors flagged insufficient investment as a material risk in the annual review."
+            }
+          ]
+        }
+      ]
     }
   ]
 }
