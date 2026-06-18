@@ -1,480 +1,470 @@
-console.log("GAME.JS LOADED");
+// ── BCM Crisis Simulator — game.js v1.0 ──────────────────────────────────────
+// Loads scenario JSON, drives the game loop, and renders the executive report.
+// Dependencies: none (vanilla JS). Targets: index.html + style.css.
 
-const gameState = {
+const SCENARIO_PATH = './scenarios/ransomware_v1.json';
 
-    business: 100,
-    reputation: 100,
+// ── State ─────────────────────────────────────────────────────────────────────
 
-    detection: 0,
-    response: 0,
-    mitigation: 0,
-    reporting: 0,
-    recovery: 0,
-    remediation: 0,
+const state = {
+  scenario:    null,
+  actIndex:    0,
+  choicesUsed: 0,
+  openNodes:   {},    // nodeId → boolean
+  investigated: {},   // nodeId → boolean
+  decided:     {},    // nodeId → optionIndex
+  scores: {
+    detection:    0,
+    response:     0,
+    mitigation:   0,
+    reporting:    0,
+    recovery:     0,
+    remediation:  0,
     lessonsLearned: 0
-
+  },
+  business:   100,
+  reputation: 100
 };
 
-let actChoiceCount = 0;
-let maxChoices = 0;
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
-let currentScenario = null;
-let currentActIndex = 0;
+function clamp(v) { return Math.max(0, Math.min(100, Math.round(v))); }
 
-function updateScoreBoard() {
-
-    document.getElementById(
-        "businessScore"
-    ).textContent =
-        gameState.business;
-
-    document.getElementById(
-        "reputationScore"
-    ).textContent =
-        gameState.reputation;
-
-    document.getElementById(
-        "detectionScore"
-    ).textContent =
-        gameState.detection;
-
-    document.getElementById(
-        "responseScore"
-    ).textContent =
-        gameState.response;
-
-    document.getElementById(
-        "mitigationScore"
-    ).textContent =
-        gameState.mitigation;
-
-    document.getElementById(
-        "reportingScore"
-    ).textContent =
-        gameState.reporting;
-
-    document.getElementById(
-        "recoveryScore"
-    ).textContent =
-        gameState.recovery;
-
-    document.getElementById(
-        "remediationScore"
-    ).textContent =
-        gameState.remediation;
-
-    document.getElementById(
-        "lessonsLearnedScore"
-    ).textContent =
-        gameState.lessonsLearned;
-
-    document.getElementById(
-        "choiceCount"
-    ).textContent =
-        actChoiceCount;
-
-    document.getElementById(
-        "choiceMax"
-    ).textContent =
-        maxChoices;
+function applyScores(scores, metrics) {
+  for (const [k, v] of Object.entries(scores  || {})) {
+    if (state.scores[k] !== undefined) state.scores[k] = clamp(state.scores[k] + v);
+  }
+  if (metrics) {
+    if (metrics.business   !== undefined) state.business   = clamp(state.business   + metrics.business);
+    if (metrics.reputation !== undefined) state.reputation = clamp(state.reputation + metrics.reputation);
+  }
 }
 
-function renderQuestion(
-    node,
-    container
-) {
+function getAct()        { return state.scenario.acts[state.actIndex]; }
+function totalActs()     { return state.scenario.acts.length; }
+function isLastAct()     { return state.actIndex >= totalActs() - 1; }
+function actComplete()   { return state.choicesUsed >= getAct().maxChoices; }
+function progressPct()   { return Math.round((state.actIndex / totalActs()) * 100); }
 
-    const block =
-        document.createElement(
-            "div"
-        );
+// ── Screens ───────────────────────────────────────────────────────────────────
 
-    block.style.margin =
-        "20px 0";
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
 
-    block.innerHTML = `
+// ── Render: HUD ───────────────────────────────────────────────────────────────
 
-        <h4>
-            ${node.title}
-        </h4>
+function renderHUD() {
+  const act = getAct();
+  document.getElementById('hud-act').textContent     = act.label;
+  document.getElementById('hud-choices').textContent = `${state.choicesUsed}/${act.maxChoices} choices`;
+  document.getElementById('progress-fill').style.width = progressPct() + '%';
+  document.getElementById('act-eyebrow').textContent  = act.label;
+  document.getElementById('act-title').textContent    = act.title;
+  document.getElementById('act-brief').textContent    = act.brief;
+  document.getElementById('ticker-text').textContent  = act.ticker;
 
-        <button>
-            Investigate
-        </button>
+  // Choice dots
+  const bar = document.getElementById('choices-bar');
+  bar.innerHTML = '<span class="choices-label">Choices:</span>';
+  for (let i = 0; i < act.maxChoices; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'choice-dot' + (i < state.choicesUsed ? ' used' : '');
+    bar.appendChild(dot);
+  }
+}
 
-        <div class="result"></div>
+// ── Render: Nodes ─────────────────────────────────────────────────────────────
 
-    `;
+function renderNodes() {
+  const act       = getAct();
+  const container = document.getElementById('nodes-container');
+  container.innerHTML = '';
 
-    container.appendChild(
-        block
-    );
+  for (const node of act.nodes) {
+    container.appendChild(buildNodeCard(node));
+  }
+}
 
-    const button =
-        block.querySelector(
-            "button"
-        );
+function buildNodeCard(node) {
+  const isOpen     = !!state.openNodes[node.id];
+  const isDone     = state.investigated[node.id] || state.decided[node.id] !== undefined;
+  const card       = document.createElement('div');
+  card.className   = 'node-card' + (isDone ? ' done' : '');
+  card.id          = 'card-' + node.id;
 
-    const resultDiv =
-        block.querySelector(
-            ".result"
-        );
+  // Header
+  const header = document.createElement('div');
+  header.className = 'node-header';
+  header.setAttribute('role', 'button');
+  header.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  header.innerHTML = `
+    <span class="node-type-badge ${node.type === 'investigation' ? 'badge-inv' : 'badge-dec'}">
+      ${node.type === 'investigation' ? 'Investigate' : 'Decision'}
+    </span>
+    <span class="node-title">${node.title}</span>
+    ${isDone ? '<span class="node-done-icon" aria-label="Complete">✓</span>' : ''}
+    <span class="node-chevron${isOpen ? ' open' : ''}" aria-hidden="true">▾</span>
+  `;
+  header.addEventListener('click', () => toggleNode(node.id));
+  card.appendChild(header);
 
-    button.addEventListener(
-        "click",
-        () => {
+  // Body (only if open)
+  if (isOpen) {
+    const body = document.createElement('div');
+    body.className = 'node-body';
 
-            button.disabled = true;
+    if (node.type === 'investigation') {
+      body.appendChild(buildInvestigationBody(node));
+    } else {
+      body.appendChild(buildDecisionBody(node));
+    }
 
-            actChoiceCount++;
+    card.appendChild(body);
+  }
 
-            if(node.score){
+  return card;
+}
 
-                gameState.detection +=
-                    node.score.detection || 0;
+function buildInvestigationBody(node) {
+  const frag = document.createDocumentFragment();
 
-                gameState.response +=
-                    node.score.response || 0;
+  if (state.investigated[node.id]) {
+    const result = document.createElement('div');
+    result.className = 'node-result finding';
+    result.textContent = node.result;
+    frag.appendChild(result);
 
-                gameState.mitigation +=
-                    node.score.mitigation || 0;
+    // Child nodes
+    if (node.children && node.children.length) {
+      const childrenWrap = document.createElement('div');
+      childrenWrap.className = 'children';
 
-                gameState.reporting +=
-                    node.score.reporting || 0;
+      for (const child of node.children) {
+        const childEl = document.createElement('div');
+        childEl.className = 'child-node';
 
-                gameState.recovery +=
-                    node.score.recovery || 0;
+        const childTitle = document.createElement('div');
+        childTitle.className = 'child-title';
+        childTitle.textContent = child.title;
+        childEl.appendChild(childTitle);
 
-                gameState.remediation +=
-                    node.score.remediation || 0;
-
-                gameState.lessonsLearned +=
-                    node.score.lessonsLearned || 0;
-
-                gameState.business +=
-                    node.score.business || 0;
-
-                gameState.reputation +=
-                    node.score.reputation || 0;
-            }
-
-            updateScoreBoard();
-
-            resultDiv.innerHTML = `
-
-                <p>
-                    ${node.result}
-                </p>
-
-            `;
-
-            if(node.children){
-
-                node.children.forEach(
-                    child => {
-
-                        renderQuestion(
-                            child,
-                            resultDiv
-                        );
-
-                    }
-                );
-            }
-
-            if(
-                actChoiceCount >=
-                maxChoices
-            ){
-
-                document
-                    .querySelectorAll(
-                        "#questionTree button"
-                    )
-                    .forEach(
-                        btn => {
-                            btn.disabled = true;
-                        }
-                    );
-
-                const notice =
-                    document.createElement(
-                        "div"
-                    );
-
-                notice.innerHTML = `
-
-                    <hr>
-
-                    <h3>
-                        Act Complete
-                    </h3>
-
-                    <button id="nextActBtn">
-                        Next Act →
-                    </button>
-
-                `;
-
-                document
-                    .getElementById(
-                        "questionTree"
-                    )
-                    .appendChild(
-                        notice
-                    );
-
-                const nextBtn =
-                    document.getElementById(
-                        "nextActBtn"
-                    );
-
-                nextBtn.addEventListener(
-                    "click",
-                    () => {
-
-                        if(
-                            currentActIndex + 1 <
-                            currentScenario.acts.length
-                        ){
-
-                            loadAct(
-                                currentActIndex + 1
-                            );
-
-                        }
-                        else {
-
-                            document
-                                .getElementById(
-                                    "gameArea"
-                                )
-                                .innerHTML = `
-
-                                    <h1>
-                                        Simulation Complete
-                                    </h1>
-
-                                    <p>
-                                        Thank you for playing.
-                                    </p>
-
-                                `;
-                        }
-
-                    }
-                );
-            }
-
+        if (state.investigated[child.id]) {
+          const childResult = document.createElement('div');
+          childResult.className = 'child-result';
+          childResult.textContent = child.result;
+          childEl.appendChild(childResult);
+        } else {
+          const btn = document.createElement('button');
+          btn.className = 'inv-btn';
+          btn.textContent = '⤳ Investigate further';
+          btn.disabled = actComplete();
+          btn.addEventListener('click', () => investigateChild(node.id, child.id));
+          childEl.appendChild(btn);
         }
-    );
+
+        childrenWrap.appendChild(childEl);
+      }
+      frag.appendChild(childrenWrap);
+    }
+  } else {
+    const btn = document.createElement('button');
+    btn.className = 'inv-btn';
+    btn.textContent = '⤳ Investigate';
+    btn.disabled = actComplete();
+    btn.addEventListener('click', () => investigate(node.id));
+    frag.appendChild(btn);
+  }
+
+  return frag;
 }
 
-function loadAct(
-    actIndex
-){
+function buildDecisionBody(node) {
+  const frag     = document.createDocumentFragment();
+  const decided  = state.decided[node.id];
+  const optWrap  = document.createElement('div');
+  optWrap.className = 'options';
 
-    currentActIndex =
-        actIndex;
+  node.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    let cls = 'opt-btn';
+    if (decided !== undefined) {
+      cls += decided === i ? ' selected' : ' rejected';
+    }
+    btn.className = cls;
+    btn.disabled  = (decided !== undefined) || actComplete();
 
-    const act =
-        currentScenario.acts[
-            actIndex
-        ];
+    const icon = document.createElement('span');
+    icon.className = 'opt-icon';
+    icon.textContent = decided === i ? '✓' : (decided !== undefined ? '✕' : '◎');
+    btn.appendChild(icon);
 
-    actChoiceCount = 0;
-    maxChoices =
-        act.maxChoices;
+    btn.appendChild(document.createTextNode(opt.text));
+    btn.addEventListener('click', () => decide(node.id, i));
+    optWrap.appendChild(btn);
+  });
 
-    const gameArea =
-        document.getElementById(
-            "gameArea"
-        );
+  frag.appendChild(optWrap);
 
-    gameArea.innerHTML = `
+  // Show feedback after decision
+  if (decided !== undefined) {
+    const feedback = document.createElement('div');
+    feedback.className = 'opt-feedback';
+    feedback.textContent = node.options[decided].feedback;
+    frag.appendChild(feedback);
+  }
 
-        <div id="scoreBoard">
+  return frag;
+}
 
-            <h2>
-                Executive Dashboard
-            </h2>
+// ── Render: Act Complete / Footer ─────────────────────────────────────────────
 
-            <p>
-                Choices Used:
-                <span id="choiceCount">
-                    0
-                </span>
-                /
-                <span id="choiceMax">
-                    ${maxChoices}
-                </span>
-            </p>
+function renderFooter() {
+  const completeMsg = document.getElementById('act-complete-msg');
+  const footerNext  = document.getElementById('footer-next');
+  const btnNext     = document.getElementById('btn-next');
 
-            <hr>
+  if (actComplete()) {
+    completeMsg.style.display = 'block';
+    footerNext.style.display  = 'flex';
+    btnNext.textContent = isLastAct() ? 'View Executive Report →' : 'Next Act →';
+  } else {
+    completeMsg.style.display = 'none';
+    footerNext.style.display  = 'none';
+  }
+}
 
-            <p>
-                Business Health:
-                <span id="businessScore">
-                    100
-                </span>
-            </p>
+// ── Actions ───────────────────────────────────────────────────────────────────
 
-            <p>
-                Reputation:
-                <span id="reputationScore">
-                    100
-                </span>
-            </p>
+function toggleNode(nodeId) {
+  state.openNodes[nodeId] = !state.openNodes[nodeId];
+  renderGame();
+}
 
-            <hr>
+function investigate(nodeId) {
+  if (actComplete()) return;
+  const node = findNode(nodeId);
+  if (!node || state.investigated[nodeId]) return;
+  state.investigated[nodeId] = true;
+  state.choicesUsed++;
+  applyScores(node.scores || {}, {});
+  renderGame();
+}
 
-            <p>
-                Detection:
-                <span id="detectionScore">
-                    0
-                </span>
-            </p>
+function investigateChild(parentId, childId) {
+  if (actComplete()) return;
+  const parent = findNode(parentId);
+  const child  = parent && parent.children && parent.children.find(c => c.id === childId);
+  if (!child || state.investigated[childId]) return;
+  state.investigated[childId] = true;
+  state.choicesUsed++;
+  applyScores(child.scores || {}, {});
+  renderGame();
+}
 
-            <p>
-                Response:
-                <span id="responseScore">
-                    0
-                </span>
-            </p>
+function decide(nodeId, optIdx) {
+  if (actComplete() || state.decided[nodeId] !== undefined) return;
+  const node = findNode(nodeId);
+  if (!node) return;
+  const opt = node.options[optIdx];
+  state.decided[nodeId] = optIdx;
+  state.choicesUsed++;
+  applyScores(opt.scores || {}, opt.metrics || {});
+  renderGame();
+}
 
-            <p>
-                Mitigation:
-                <span id="mitigationScore">
-                    0
-                </span>
-            </p>
+function nextAct() {
+  if (isLastAct()) {
+    renderReport();
+    showScreen('screen-report');
+    return;
+  }
+  state.actIndex++;
+  state.choicesUsed = 0;
+  state.openNodes   = {};
+  showScreen('screen-game');
+  renderGame();
+  window.scrollTo(0, 0);
+}
 
-            <p>
-                Reporting:
-                <span id="reportingScore">
-                    0
-                </span>
-            </p>
+function findNode(nodeId) {
+  const act = getAct();
+  return act.nodes.find(n => n.id === nodeId) || null;
+}
 
-            <p>
-                Recovery:
-                <span id="recoveryScore">
-                    0
-                </span>
-            </p>
+// ── Render: Game (full) ───────────────────────────────────────────────────────
 
-            <p>
-                Remediation:
-                <span id="remediationScore">
-                    0
-                </span>
-            </p>
+function renderGame() {
+  renderHUD();
+  renderNodes();
+  renderFooter();
+}
 
-            <p>
-                Lessons Learned:
-                <span id="lessonsLearnedScore">
-                    0
-                </span>
-            </p>
+// ── Report ────────────────────────────────────────────────────────────────────
 
+function getRating() {
+  const b = state.business, r = state.reputation;
+  if (b >= 85 && r >= 85) return { label: 'Cyber Hero',            cls: 'hero',       desc: 'Exceptional response. Your organisation demonstrated industry-leading resilience.' };
+  if (b >= 70 && r >= 70) return { label: 'Balanced Responder',    cls: 'balanced',   desc: 'Solid performance with room for improvement in a few key areas.' };
+  if (b >= 50 && r >= 50) return { label: 'Struggling Organisation', cls: 'struggling', desc: 'The incident caused significant damage. Foundational improvements are urgently needed.' };
+  return                         { label: 'Organisation Collapse',  cls: 'collapse',   desc: 'Critical failures in response led to severe and lasting business and reputational damage.' };
+}
+
+function getStrengths() {
+  const s = state.scores, out = [];
+  if (s.detection     >= 15) out.push('Strong threat detection and early warning');
+  if (s.response      >= 15) out.push('Effective crisis escalation and command');
+  if (s.mitigation    >= 15) out.push('Proactive BCP and service continuity');
+  if (s.reporting     >= 20) out.push('Timely and transparent stakeholder communication');
+  if (s.recovery      >= 15) out.push('Well-executed disaster recovery');
+  if (s.remediation   >= 20) out.push('Committed to long-term resilience investment');
+  if (s.lessonsLearned >= 20) out.push('Embedded lessons-learned culture');
+  return out.length ? out : ['No clear strengths identified — review all response phases'];
+}
+
+function getWeaknesses() {
+  const s = state.scores, out = [];
+  if (s.detection      < 10) out.push('Weak or delayed threat detection');
+  if (s.response       < 10) out.push('Slow crisis declaration and escalation');
+  if (s.mitigation     < 10) out.push('Insufficient business continuity activation');
+  if (s.reporting      < 5)  out.push('Poor regulatory and public communication');
+  if (s.recovery       < 10) out.push('Inadequate disaster recovery execution');
+  if (s.remediation    < 5)  out.push('No post-incident remediation investment');
+  if (s.lessonsLearned < 10) out.push('Lessons-learned process not completed');
+  return out.length ? out : ['No critical weaknesses — strong overall performance'];
+}
+
+function getRecommendations() {
+  const s = state.scores, out = [];
+  if (s.detection      < 15) out.push('Improve SIEM alerting rules and 24/7 SOC coverage');
+  if (s.response       < 15) out.push('Conduct quarterly Cyber Crisis tabletop exercises');
+  if (s.mitigation     < 15) out.push('Test BCP activation at least annually');
+  if (s.reporting      < 15) out.push('Develop pre-approved crisis communication playbooks');
+  if (s.recovery       < 10) out.push('Test full DR restoration from backup annually');
+  if (s.lessonsLearned < 20) out.push('Mandate after-action reviews for all P1 incidents');
+  out.push('Review cyber insurance policy terms and notification SLAs');
+  return out.slice(0, 5);
+}
+
+function renderReport() {
+  const s      = state.scores;
+  const rating = getRating();
+  const strs   = getStrengths();
+  const weaks  = getWeaknesses();
+  const recs   = getRecommendations();
+
+  const techTotal = s.detection + s.response + s.mitigation + s.reporting + s.recovery + s.remediation + s.lessonsLearned;
+  const techAvg   = Math.round(techTotal / 7);
+  const overall   = Math.round((state.business + state.reputation + techAvg) / 3);
+
+  const bColor = state.business   >= 70 ? 'good' : state.business   >= 50 ? 'ok' : 'bad';
+  const rColor = state.reputation >= 70 ? 'good' : state.reputation >= 50 ? 'ok' : 'bad';
+  const oColor = overall          >= 70 ? 'good' : overall           >= 50 ? 'ok' : 'bad';
+
+  const scoreRows = [
+    { name: 'Detection',       val: s.detection,     max: 30 },
+    { name: 'Response',        val: s.response,      max: 30 },
+    { name: 'Mitigation',      val: s.mitigation,    max: 30 },
+    { name: 'Reporting',       val: s.reporting,     max: 30 },
+    { name: 'Recovery',        val: s.recovery,      max: 30 },
+    { name: 'Remediation',     val: s.remediation,   max: 30 },
+    { name: 'Lessons Learned', val: s.lessonsLearned, max: 30 }
+  ];
+
+  const container = document.getElementById('report-container');
+  container.innerHTML = `
+    <div class="report-hero">
+      <div class="report-hero-eyebrow">Executive Incident Report</div>
+      <h1>${state.scenario.title}</h1>
+      <div class="report-hero-sub">${state.scenario.subtitle} — After-Action Assessment</div>
+    </div>
+
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-label">Business Health</div>
+        <div class="metric-value ${bColor}">${state.business}</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Reputation</div>
+        <div class="metric-value ${rColor}">${state.reputation}</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Overall Resilience</div>
+        <div class="metric-value ${oColor}">${overall}</div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <h3>Technical performance by category</h3>
+      ${scoreRows.map(r => `
+        <div class="score-row">
+          <span class="score-name">${r.name}</span>
+          <div class="score-track">
+            <div class="score-fill" style="width:${Math.round(Math.min(100, (r.val / r.max) * 100))}%"></div>
+          </div>
+          <span class="score-num">${r.val}</span>
         </div>
+      `).join('')}
+    </div>
 
-        <hr>
+    <div class="sw-grid">
+      <div class="sw-card str">
+        <h4>✓ Strengths</h4>
+        ${strs.map(t => `<div class="sw-item">${t}</div>`).join('')}
+      </div>
+      <div class="sw-card weak">
+        <h4>✕ Weaknesses</h4>
+        ${weaks.map(t => `<div class="sw-item">${t}</div>`).join('')}
+      </div>
+    </div>
 
-        <h2>
-            ${currentScenario.title}
-        </h2>
+    <div class="section-card">
+      <h3>Recommendations</h3>
+      ${recs.map(r => `
+        <div class="rec-item">
+          <span class="rec-arrow">→</span>${r}
+        </div>
+      `).join('')}
+    </div>
 
-        <p>
-            ${currentScenario.description}
-        </p>
+    <div class="rating-box">
+      <div class="rating-label">Final Rating</div>
+      <div class="rating-title ${rating.cls}">${rating.label}</div>
+      <div class="rating-desc">${rating.desc}</div>
+    </div>
 
-        <hr>
-
-        <h3>
-            ${act.name}
-        </h3>
-
-        <div id="questionTree"></div>
-
-    `;
-
-    updateScoreBoard();
-
-    const treeContainer =
-        document.getElementById(
-            "questionTree"
-        );
-
-    if(
-        act.questions &&
-        act.questions.length > 0
-    ){
-
-        act.questions.forEach(
-            question => {
-
-                renderQuestion(
-                    question,
-                    treeContainer
-                );
-
-            }
-        );
-    }
+    <div class="report-footer">
+      <button class="btn-primary" onclick="location.reload()">↩ Restart Exercise</button>
+    </div>
+  `;
 }
 
-async function loadScenario() {
+// ── Boot ──────────────────────────────────────────────────────────────────────
 
-    try {
+async function init() {
+  // Load scenario JSON
+  try {
+    const res = await fetch(SCENARIO_PATH);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    state.scenario = await res.json();
+  } catch (err) {
+    console.error('Failed to load scenario:', err);
+    document.body.innerHTML = `<p style="color:#f85149;padding:2rem;">Error loading scenario: ${err.message}</p>`;
+    return;
+  }
 
-        const response =
-            await fetch(
-                "./scenarios/ransomware_v1.json"
-            );
+  // Title screen: Begin button
+  document.getElementById('btn-start').addEventListener('click', () => {
+    showScreen('screen-game');
+    renderGame();
+  });
 
-        currentScenario =
-            await response.json();
+  // Next act button
+  document.getElementById('btn-next').addEventListener('click', nextAct);
 
-        document
-            .getElementById(
-                "startBtn"
-            )
-            .style.display =
-            "none";
-
-        loadAct(0);
-
-    }
-    catch(error){
-
-        console.error(
-            error
-        );
-
-        document
-            .getElementById(
-                "gameArea"
-            )
-            .innerHTML = `
-
-                <h2>
-                    ERROR
-                </h2>
-
-                <p>
-                    ${error}
-                </p>
-
-            `;
-    }
+  // Show title
+  showScreen('screen-title');
 }
 
-document
-    .getElementById(
-        "startBtn"
-    )
-    .addEventListener(
-        "click",
-        loadScenario
-    );
+document.addEventListener('DOMContentLoaded', init);
