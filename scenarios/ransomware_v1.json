@@ -1,317 +1,121 @@
 {
-"scenarioId": "ransomware_v1",
-"title": "Ransomware Crisis Simulation",
-"version": "1.0",
-"description": "Phishing email leads to RAT infection, Active Directory compromise, ransomware deployment, business disruption, and recovery.",
-"acts": [
-{
-"id": "act1",
-"name": "Detection",
-"maxChoices": 4,
-"questions": [
-{
-"id": "q1",
-"type": "investigation",
-"title": "How many users received the email?",
-"result": "Thirty-five users received the phishing email.",
-"score": {
-"detection": 5
-},
-"children": [
-{
-"id": "q1a",
-"type": "investigation",
-"title": "Which departments received the email?",
-"result": "Finance, HR, and Procurement received the phishing email.",
-"score": {
-"detection": 5
-}
-},
-{
-"id": "q1b",
-"type": "investigation",
-"title": "Who clicked the email?",
-"result": "Seven users clicked the malicious attachment.",
-"score": {
-"detection": 10
-},
-"children": [
-{
-"id": "identify_infected_hosts",
-"type": "investigation",
-"title": "Identify infected hosts",
-"result": "Five workstations show malware execution and C2 communication.",
-"score": {
-"detection": 10,
-"response": 5
-}
-}
-]
-}
-]
-}
-]
-},
-{
-"id": "act2",
-"name": "Escalation",
-"maxChoices": 3,
-"questions": [
-{
-"id": "e1",
-"type": "investigation",
-"title": "Investigate Active Directory Activity",
-"result": "Suspicious LDAP enumeration activity detected from multiple compromised hosts.",
-"score": {
-"response": 10
-}
-},
-{
-"id": "e2",
-"type": "investigation",
-"title": "Investigate Domain Controllers",
-"result": "Potential Domain Admin credential compromise detected.",
-"score": {
-"response": 10,
-"mitigation": 5
-}
-},
-{
-"id": "e3",
-"type": "investigation",
-"title": "Investigate Command and Control Traffic",
-"result": "Malware beaconing observed to external infrastructure.",
-"score": {
-"response": 5,
-"mitigation": 10
-}
-}
-]
-},
-{
-"id": "act3",
-"name": "Business Impact Analysis",
-"maxChoices": 2,
-"questions": [
-{
-"id": "bia1",
-"type": "decision",
-"title": "Which system should be recovered first?",
-"options": [
-{
-"text": "ERP",
-"result": "Financial operations restored first.",
-"score": {
-"recovery": 10,
-"business": 10
-}
-},
-{
-"text": "Email",
-"result": "Internal communication restored first.",
-"score": {
-"reporting": 10,
-"business": 5
-}
-},
-{
-"text": "Production",
-"result": "Manufacturing operations restored first.",
-"score": {
-"recovery": 15,
-"business": 15
-}
-}
-]
-},
-{
-"id": "bia2",
-"type": "decision",
-"title": "Choose Recovery Time Objective (RTO)",
-"options": [
-{
-"text": "1 Hour",
-"result": "Aggressive recovery target selected.",
-"score": {
-"recovery": 10
-}
-},
-{
-"text": "4 Hours",
-"result": "Balanced recovery target selected.",
-"score": {
-"recovery": 5
-}
-},
-{
-"text": "24 Hours",
-"result": "Minimal recovery effort planned.",
-"score": {
-"recovery": 0
-}
-}
-]
-}
-]
-},
-{
-"id": "act4",
-"name": "Crisis Management",
-"maxChoices": 3,
-"questions": [
-{
-"id": "cm1",
-"type": "decision",
-"title": "Declare a Cyber Crisis?",
-"options": [
-{
-"text": "Declare Crisis Immediately",
-"result": "Executive crisis management team activated.",
-"score": {
-"reporting": 15,
-"reputation": 5
-}
-},
-{
-"text": "Wait for More Information",
-"result": "Crisis declaration delayed.",
-"score": {
-"reporting": -5,
-"reputation": -10
-}
-}
-]
-},
-{
-"id": "cm2",
-"type": "decision",
-"title": "Activate Business Continuity Plan (BCP)?",
-"options": [
-{
-"text": "Activate BCP",
-"result": "Critical business functions continue operating.",
-"score": {
-"business": 10,
-"response": 10
-}
-},
-{
-"text": "Do Not Activate",
-"result": "Business disruption increases.",
-"score": {
-"business": -15
-}
-}
-]
-},
-{
-"id": "cm3",
-"type": "decision",
-"title": "How should customers be informed?",
-"options": [
-{
-"text": "Transparent Communication",
-"result": "Customers appreciate transparency.",
-"score": {
-"reputation": 10,
-"reporting": 10
-}
-},
-{
-"text": "Delay Public Statement",
-"result": "Rumors spread on social media.",
-"score": {
-"reputation": -15
-}
-}
-]
-}
-]
-},
-{
-"id": "act5",
-"name": "Recovery",
-"maxChoices": 2,
-"questions": [
-{
-"id": "r1",
-"type": "decision",
-"title": "Activate Disaster Recovery Site?",
-"options": [
-{
-"text": "Activate DR Site",
-"result": "Business services restored using DR environment.",
-"score": {
-"recovery": 20,
-"business": 10
-}
-},
-{
-"text": "Wait for Primary Site Recovery",
-"result": "Recovery takes significantly longer.",
-"score": {
-"business": -10
-}
-}
-]
-},
-{
-"id": "r2",
-"type": "decision",
-"title": "Rotate All Administrative Credentials?",
-"options": [
-{
-"text": "Rotate Immediately",
-"result": "Persistence mechanisms disrupted.",
-"score": {
-"remediation": 20
-}
-},
-{
-"text": "Rotate Later",
-"result": "Attackers may retain access.",
-"score": {
-"remediation": -10
-}
-}
-]
-}
-]
-},
-{
-"id": "post_review",
-"name": "Post Incident Review",
-"maxChoices": 1,
-"questions": [
-{
-"id": "p1",
-"type": "decision",
-"title": "What should be improved first?",
-"options": [
-{
-"text": "User Awareness Training",
-"result": "Future phishing risk reduced.",
-"score": {
-"lessonsLearned": 15
-}
-},
-{
-"text": "Disaster Recovery Testing",
-"result": "Recovery readiness improved.",
-"score": {
-"lessonsLearned": 15,
-"recovery": 5
-}
-},
-{
-"text": "Crisis Communication Plan",
-"result": "Stakeholder management improved.",
-"score": {
-"lessonsLearned": 15,
-"reporting": 5
-}
-}
-]
-}
-]
+  "scenarioId": "ransomware_v1",
+  "title": "Ransomware Crisis Simulation",
+  "version": "1.0",
+  "description": "Phishing email leads to RAT infection, Active Directory compromise, ransomware deployment, business disruption, and recovery.",
+  "acts": [
+    {
+      "id": "act1",
+      "name": "Detection",
+      "maxChoices": 4,
+      "questions": [
+        {
+          "id": "q1",
+          "type": "investigation",
+          "title": "How many users received the email?",
+          "result": "Thirty-five users received the phishing email.",
+          "score": {
+            "detection": 5
+          },
+          "children": [
+            {
+              "id": "q1a",
+              "type": "investigation",
+              "title": "Which departments received the email?",
+              "result": "Finance, HR, and Procurement received the phishing email.",
+              "score": {
+                "detection": 5
+              }
+            },
+            {
+              "id": "q1b",
+              "type": "investigation",
+              "title": "Who clicked the email?",
+              "result": "Seven users clicked the malicious attachment.",
+              "score": {
+                "detection": 10
+              },
+              "children": [
+                {
+                  "id": "identify_infected_hosts",
+                  "type": "investigation",
+                  "title": "Identify infected hosts",
+                  "result": "Five workstations show malware execution and C2 communication.",
+                  "score": {
+                    "detection": 10,
+                    "response": 5
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "id": "act2",
+      "name": "Escalation",
+      "maxChoices": 3,
+      "questions": [
+        {
+          "id": "e1",
+          "type": "investigation",
+          "title": "Investigate Active Directory Activity",
+          "result": "Suspicious LDAP enumeration activity detected from multiple compromised hosts.",
+          "score": {
+            "response": 10
+          }
+        },
+        {
+          "id": "e2",
+          "type": "investigation",
+          "title": "Investigate Domain Controllers",
+          "result": "Potential Domain Admin credential compromise detected.",
+          "score": {
+            "response": 10,
+            "mitigation": 5
+          }
+        },
+        {
+          "id": "e3",
+          "type": "investigation",
+          "title": "Investigate Command and Control Traffic",
+          "result": "Malware beaconing observed to external infrastructure.",
+          "score": {
+            "response": 5,
+            "mitigation": 10
+          }
+        }
+      ]
+    },
+
+    {
+      "id": "act3",
+      "name": "Business Impact Analysis",
+      "maxChoices": 2,
+      "questions": []
+    },
+
+    {
+      "id": "act4",
+      "name": "Crisis Management",
+      "maxChoices": 3,
+      "questions": []
+    },
+
+    {
+      "id": "act5",
+      "name": "Recovery",
+      "maxChoices": 2,
+      "questions": []
+    },
+
+    {
+      "id": "post_review",
+      "name": "Post Incident Review",
+      "maxChoices": 1,
+      "questions": []
+    }
+  ]
 }
