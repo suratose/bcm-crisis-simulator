@@ -90,6 +90,7 @@
 },
 {
 {
+{
 "id": "act3",
 "name": "Business Impact Analysis",
 "maxChoices": 2,
@@ -126,32 +127,32 @@
 ]
 },
 {
-  "id": "bia2",
-  "type": "decision",
-  "title": "Choose Recovery Time Objective (RTO)",
-  "options": [
-    {
-      "text": "1 Hour",
-      "result": "Aggressive recovery target selected.",
-      "score": {
-        "recovery": 10
-      }
-    },
-    {
-      "text": "4 Hours",
-      "result": "Balanced recovery target selected.",
-      "score": {
-        "recovery": 5
-      }
-    },
-    {
-      "text": "24 Hours",
-      "result": "Minimal recovery effort planned.",
-      "score": {
-        "recovery": 0
-      }
-    }
-  ]
+"id": "bia2",
+"type": "decision",
+"title": "Choose Recovery Time Objective (RTO)",
+"options": [
+{
+"text": "1 Hour",
+"result": "Aggressive recovery target selected.",
+"score": {
+"recovery": 10
+}
+},
+{
+"text": "4 Hours",
+"result": "Balanced recovery target selected.",
+"score": {
+"recovery": 5
+}
+},
+{
+"text": "24 Hours",
+"result": "Minimal recovery effort planned.",
+"score": {
+"recovery": 0
+}
+}
+]
 }
 ]
 },
