@@ -1,38 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BCM Crisis Simulator</title>
-
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BCM Crisis Simulator</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
 
-    <div class="container">
+  <!-- SCREEN: Title -->
+  <div id="screen-title" class="screen active">
+    <div class="title-wrap">
+      <div class="title-eyebrow">Tabletop Exercise Platform</div>
+      <h1 class="title-heading">BCM Crisis<br>Simulator</h1>
+      <p class="title-sub">Practice Incident Response, Business Continuity,<br>and Crisis Management in a realistic scenario.</p>
+      <button class="btn-primary" id="btn-start">Begin Exercise</button>
+      <p class="title-note">v1.0 — Ransomware Scenario</p>
+    </div>
+  </div>
 
-        <h1>BCM Crisis Simulator</h1>
-
-        <p>
-            Interactive Cyber Crisis Tabletop Exercise
-        </p>
-
-        <button id="startBtn">
-            Start Simulation
-        </button>
-
-        <hr>
-
-        <div id="gameArea">
-            Waiting for simulation...
-        </div>
-
+  <!-- SCREEN: Game -->
+  <div id="screen-game" class="screen">
+    <div class="hud">
+      <span class="hud-title">BCM Crisis Simulator</span>
+      <div class="hud-meta">
+        <span class="hud-badge" id="hud-act">Act 1</span>
+        <span class="hud-badge" id="hud-choices">0/4 choices</span>
+      </div>
     </div>
 
-    <script src="game.js"></script>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
 
+    <div class="act-header">
+      <div class="act-eyebrow" id="act-eyebrow"></div>
+      <div class="act-title" id="act-title"></div>
+      <div class="act-brief" id="act-brief"></div>
+    </div>
+
+    <div class="ticker" id="ticker">
+      <span class="ticker-icon">⚠</span>
+      <span id="ticker-text"></span>
+    </div>
+
+    <div class="choices-bar" id="choices-bar"></div>
+
+    <div class="nodes" id="nodes-container"></div>
+
+    <div class="act-complete-msg" id="act-complete-msg" style="display:none">
+      <strong>Act complete</strong>
+      <p>You have used all available choices for this act.</p>
+    </div>
+
+    <div class="footer" id="footer-next" style="display:none">
+      <button class="btn-primary" id="btn-next">Next Act →</button>
+    </div>
+  </div>
+
+  <!-- SCREEN: Report -->
+  <div id="screen-report" class="screen">
+    <div class="report" id="report-container"></div>
+  </div>
+
+  <script src="game.js"></script>
 </body>
-
 </html>
