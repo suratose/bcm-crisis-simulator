@@ -279,7 +279,6 @@
 ]
 },
 {
-{
 "id": "post_review",
 "name": "Post Incident Review",
 "maxChoices": 1,
